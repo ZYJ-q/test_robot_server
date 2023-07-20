@@ -440,3 +440,27 @@ pub async fn get_income_data(
 
 
 
+// papi
+// 账户信息
+pub async fn get_papi_account_sub(
+    http_api: &Box<dyn HttpVenueApi>,
+    name: &str,
+    id: &u64,
+    origin_balance: f64,
+    alarm: &str,
+) -> Option<Value> {
+    if let Some(data) = http_api.account().await {
+        let value: Value = serde_json::from_str(&data).unwrap();
+        println!("账户信息papi{:?}", value);
+
+        return Some(value);
+    
+    } else {
+        error!("Can't get {} account.", name);
+        return None;
+    }
+}
+
+
+
+
