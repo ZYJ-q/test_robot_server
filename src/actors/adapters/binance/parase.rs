@@ -67,6 +67,7 @@ pub async fn get_account_sub(
                         let v: Value = serde_json::from_str(&data).unwrap();
                         let price_obj = v.as_object().unwrap();
                         let price:f64 = price_obj.get("price").unwrap().as_str().unwrap().parse().unwrap();
+                        println!("标记价格{}",price );
                         best_price = price;
                         let new_price = wallet_balance * price;
                         new_total_balance += new_price;
@@ -450,14 +451,12 @@ pub async fn get_papi_account_sub(
 ) -> Option<PapiSub> {
     if let Some(data) = http_api.account().await {
         let value: Value = serde_json::from_str(&data).unwrap();
-        println!("账户信息papi{:?}", value);
         let obj = value.as_object().unwrap();
         let equity = obj.get("accountEquity").unwrap().as_str().unwrap();
         let total_available_balance = obj.get("totalAvailableBalance").unwrap().as_str().unwrap();
 
         if let Some(data) = http_api.position_risk().await {
             let value: Value = serde_json::from_str(&data).unwrap();
-            println!("margin账户信息papi{:?}", value);
 
 
 
@@ -465,7 +464,6 @@ pub async fn get_papi_account_sub(
 
             if let Some(data) = http_api.position_um().await {
                 let value: Value = serde_json::from_str(&data).unwrap();
-            println!("um账户信息papi{:?}", value);
 
             let positions = value.as_object().unwrap().get("positions").unwrap().as_array().unwrap();
         // let mut position: f64 = 0.0;
