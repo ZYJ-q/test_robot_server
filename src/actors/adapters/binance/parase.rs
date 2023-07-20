@@ -4,7 +4,7 @@ use serde_json::{Map,Value};
 use std::collections::VecDeque;
 use std::fs;
 use chrono::{DateTime, NaiveDateTime, Utc};
-use super::http_data::Sub;
+use super::http_data::{Sub, PapiSub};
 use super::base::venue_api::HttpVenueApi;
 
 pub async fn get_account_sub(
@@ -448,12 +448,68 @@ pub async fn get_papi_account_sub(
     id: &u64,
     origin_balance: f64,
     alarm: &str,
-) -> Option<Value> {
+) -> Option<PapiSub> {
     if let Some(data) = http_api.account().await {
         let value: Value = serde_json::from_str(&data).unwrap();
         println!("账户信息papi{:?}", value);
+        let obj = value.as_object().unwrap();
+        let equity = obj.get("accountEquity").unwrap().as_str().unwrap();
+        let total_available_balance = obj.get("totalAvailableBalance").unwrap().as_str().unwrap();
 
-        return Some(value);
+        if let Some(data) = http_api.position_risk().await {
+            let value: Value = serde_json::from_str(&data).unwrap();
+            println!("margin账户信息papi{:?}", value);
+
+
+
+
+
+            if let Some(data) = http_api.position_um().await {
+                let value: Value = serde_json::from_str(&data).unwrap();
+            println!("um账户信息papi{:?}", value);
+
+            
+
+            
+
+        
+
+        
+
+        if let Some(data) = http_api.get_open_orders("none").await {
+            let value: Value = serde_json::from_str(&data).unwrap();
+            let open_orders = value.as_array().unwrap();
+            let open_order = open_orders.len();
+
+            // println!("当前挂单数量:{}, name:{}", open_order, name);
+
+            return Some(PapiSub {
+                id: String::from(id.to_string()),
+                name: String::from(name),
+                total_equity: format!("{}", equity),
+                leverage: format!("{}", 2),
+                position: format!("{}", 2),
+                open_order_amt: format!("{}", 2),
+                available_balance: format!("{}", total_available_balance),
+            });
+        } else {
+            error!("Can't get {} openOrders.", name);
+        return None;
+            
+        }
+    }else {
+
+        error!("Can't get {} positions_um.", name);
+        return None;
+        
+    }
+    } else {
+        error!("Can't get {} positions.", name);
+        return None;
+        
+    }
+
+        
     
     } else {
         error!("Can't get {} account.", name);

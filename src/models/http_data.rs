@@ -269,6 +269,18 @@ pub struct ByBitSub {
     pub available_balance: String
 }
 
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct PapiSub {
+    pub id: String,
+    pub name: String,
+    pub total_equity: String,
+    pub leverage: String,
+    pub open_order_amt: String,
+    pub position: String,
+    pub available_balance: String
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AccountRe {
     // pub total: Total,

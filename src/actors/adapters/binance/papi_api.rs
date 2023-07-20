@@ -193,7 +193,7 @@ impl HttpVenueApi for BinancePapiApi {
         params.insert(String::from("timestamp"), Value::from(now_time));
 
         let response = self
-            .send(Method::GET, "/fapi/v2/positionRisk", true, &mut params)
+            .send(Method::GET, "/papi/v1/balance", true, &mut params)
             .await;
 
         let res_data = self.check_response_data(response);
@@ -207,6 +207,29 @@ impl HttpVenueApi for BinancePapiApi {
             }
         }
     }
+
+
+    async fn position_um(&self) -> Option<String> {
+      let mut params: HashMap<String, Value> = HashMap::new();
+
+      let now_time = Utc::now().timestamp_millis();
+      params.insert(String::from("timestamp"), Value::from(now_time));
+
+      let response = self
+          .send(Method::GET, "/papi/v1/um/account", true, &mut params)
+          .await;
+
+      let res_data = self.check_response_data(response);
+
+      match res_data {
+          Some(data) => {
+              return Some(data);
+          }
+          None => {
+              return None;
+          }
+      }
+  }
 
     async fn trade_hiostory(&self, symbol: &str) -> Option<String> {
         let mut params: HashMap<String, Value> = HashMap::new();
