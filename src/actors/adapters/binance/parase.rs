@@ -466,7 +466,6 @@ pub async fn get_papi_account_sub(
                 let value: Value = serde_json::from_str(&data).unwrap();
 
             let positions = value.as_object().unwrap().get("positions").unwrap().as_array().unwrap();
-            println!("positions{:?}", positions);
         // let mut position: f64 = 0.0;
         let mut amts: f64 = 0.0;
         let mut prices: f64 = 0.0;
@@ -479,6 +478,7 @@ pub async fn get_papi_account_sub(
             if position_amt == 0.0 {
                 continue;
             } else {
+                println!("positions{:?}", obj);
                 
             let symbol = obj.get("symbol").unwrap().as_str().unwrap();
             let symbols= &symbol[0..symbol.len()-4];
