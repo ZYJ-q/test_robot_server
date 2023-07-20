@@ -439,7 +439,6 @@ pub async fn get_income_data(
 
 
 
-
 // papi
 // 账户信息
 pub async fn get_papi_account_sub(
@@ -468,6 +467,35 @@ pub async fn get_papi_account_sub(
                 let value: Value = serde_json::from_str(&data).unwrap();
             println!("um账户信息papi{:?}", value);
 
+            let positions = value.as_object().unwrap().get("positions").unwrap().as_array().unwrap();
+        // let mut position: f64 = 0.0;
+        let mut amts: f64 = 0.0;
+        let mut prices: f64 = 0.0;
+
+        // let mut short_position: f64 = 0.0;
+        for p in positions {
+            let obj = p.as_object().unwrap();
+            let position_amt: f64 = obj.get("positionAmt").unwrap().as_str().unwrap().parse().unwrap();
+            
+            if position_amt == 0.0 {
+                continue;
+            } else {
+                
+            let symbol = obj.get("symbol").unwrap().as_str().unwrap();
+            let symbols= &symbol[0..symbol.len()-4];
+            // println!("symbols: {},symbol: {}", symbols, symbol);
+            let sbol = format!("{}USDT", symbols);
+            amts += position_amt;
+            }
+
+        }
+        // let position = amts * prices;
+
+        // println!("账户本金{}, 名字{}", equity, name);
+
+
+        // let leverage = amts.abs() / equity; // 杠杆率 = 仓位价值 / 本金
+
             
 
             
@@ -489,7 +517,7 @@ pub async fn get_papi_account_sub(
                 total_equity: format!("{}", equity),
                 leverage: format!("{}", 2),
                 position: format!("{}", 2),
-                open_order_amt: format!("{}", 2),
+                open_order_amt: format!("{}", open_order),
                 available_balance: format!("{}", total_available_balance),
             });
         } else {

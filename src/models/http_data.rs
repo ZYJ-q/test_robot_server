@@ -278,7 +278,7 @@ pub struct PapiSub {
     pub leverage: String,
     pub open_order_amt: String,
     pub position: String,
-    pub available_balance: String
+    pub available_balance: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -306,6 +306,21 @@ impl AccountByBitRe {
     pub fn new() -> Self {
         Self {
             bybit_subs: Vec::new(),
+        }
+    }
+}
+
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct AccountPapiRe {
+    // pub total: Total,
+    pub papi_subs: Vec<PapiSub>,
+}
+
+impl AccountPapiRe {
+    pub fn new() -> Self {
+        Self {
+            papi_subs: Vec::new(),
         }
     }
 }

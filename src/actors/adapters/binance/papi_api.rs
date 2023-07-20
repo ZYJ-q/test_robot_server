@@ -335,7 +335,7 @@ impl HttpVenueApi for BinancePapiApi {
         params.insert(String::from("timestamp"), Value::from(now_time));
 
         let response = self
-            .send(Method::GET, "/fapi/v1/openOrders", true, &mut params)
+            .send(Method::GET, "/papi/v1/um/openOrders", true, &mut params)
             .await;
 
         let res_data = self.check_response_data(response);

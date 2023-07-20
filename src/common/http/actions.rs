@@ -154,7 +154,7 @@ pub async fn get_bybit_account_(traders: HashMap<String, db_data::Trader>) -> ht
 
 
 #[warn(dead_code, unused_variables, unused_mut)]
-pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> http_data::AccountByBitRe {
+pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> http_data::AccountPapiRe {
     // http池子、
     let mut name_api: HashMap<String, Box<dyn HttpVenueApi>> = HashMap::new();
 
@@ -179,36 +179,40 @@ pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> htt
         }
     }
 
+
+
+
+
+
     // 预备数据
-    let mut data: http_data::AccountByBitRe = http_data::AccountByBitRe::new();
+    let mut data: http_data::AccountPapiRe = http_data::AccountPapiRe::new();
 
     // 合成account数据
-    let mut subs: Vec<http_data::ByBitSub> = Vec::new();
+    let mut subs: Vec<http_data::PapiSub> = Vec::new();
 
 
     for (key, value) in &name_api {
         let name = key;
-        let origin = &traders.get(name).unwrap().ori_balance;
+        let origin= &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
         let alarm = &traders.get(name).unwrap().show;
+
+        
+        
         let res = get_papi_account_sub(value, name, id, origin.parse().unwrap(), &alarm).await;
         
         match res {
             Some(sub) => {
                 
-                // equities += sub.total_equity.parse::<f64>().unwrap();
-                // equities_eth += sub.total_equity_eth.parse::<f64>().unwrap();
-                // origins += origin.parse::<f64>().unwrap();
-                // day_pnls += sub.day_pnl.parse::<f64>().unwrap();
-                // week_pnls += sub.week_pnl.parse::<f64>().unwrap();
-                // subs.push(sub);
+                subs.push(sub);
             }
             None => {
                 continue;
             }
         }
+        
     }
-    data.bybit_subs = subs;
+    data.papi_subs = subs;
     // data.total.time = date;
     // data.total.equity_eth = equities_eth.to_string();
     // data.total.net_worth = (equities / origins).to_string();
