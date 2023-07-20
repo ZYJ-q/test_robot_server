@@ -6,7 +6,7 @@ use mysql::*;
 use crate::actors::adapters::binance::parase::{get_account_positions, get_income_data, get_open_orders, get_history_accounts};
 use crate::actors::adapters::bybit::parase::{get_account_bybit, get_futures_bybit_positions, get_spot_bybit_positions, get_bybit_futures_open_orders, get_bybit_usdc_open_orders, get_bybit_spot_open_orders, get_income_bybit_data, get_bybit_history_accounts};
 
-use super::{db_data, get_account_sub, http_data, BinanceFuturesApi, HttpVenueApi, ByBitFuturesApi};
+use super::{db_data, get_account_sub, http_data, BinanceFuturesApi, HttpVenueApi, ByBitFuturesApi, BinancePapiApi, get_papi_account_sub};
 
 #[warn(dead_code, unused_variables, unused_mut)]
 pub async fn get_account(traders: HashMap<String, db_data::Trader>) -> http_data::AccountRe {
@@ -166,7 +166,7 @@ pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> htt
                 "Papi" => {
                     name_api.insert(
                         String::from(key),
-                        Box::new(ByBitFuturesApi::new(
+                        Box::new(BinancePapiApi::new(
                             "https://papi.binance.com",
                             &value.api_key,
                             &value.secret_key,
@@ -191,7 +191,7 @@ pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> htt
         let origin = &traders.get(name).unwrap().ori_balance;
         let id = &traders.get(name).unwrap().tra_id;
         let alarm = &traders.get(name).unwrap().show;
-        let res = get_account_bybit(value, name, id, origin.parse().unwrap(), &alarm).await;
+        let res = get_papi_account_sub(value, name, id, origin.parse().unwrap(), &alarm).await;
         
         match res {
             Some(sub) => {
@@ -201,7 +201,7 @@ pub async fn get_papi_account_(traders: HashMap<String, db_data::Trader>) -> htt
                 // origins += origin.parse::<f64>().unwrap();
                 // day_pnls += sub.day_pnl.parse::<f64>().unwrap();
                 // week_pnls += sub.week_pnl.parse::<f64>().unwrap();
-                subs.push(sub);
+                // subs.push(sub);
             }
             None => {
                 continue;
