@@ -525,7 +525,7 @@ pub async fn get_papi_account_sub(
                 name: String::from(name),
                 total_equity: format!("{}", equity),
                 leverage: format!("{}", 2),
-                position: format!("{}", 2),
+                position: format!("{}", amts),
                 open_order_amt: format!("{}", open_order),
                 available_balance: format!("{}", total_available_balance),
                 symbol:format!("{}USDT", new_symbol)
