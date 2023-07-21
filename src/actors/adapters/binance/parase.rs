@@ -437,7 +437,17 @@ pub async fn get_income_data(
 }
 
 
-
+pub async fn get_klines_price(
+    http_api: &Box<dyn HttpVenueApi>,
+    symbol: &str,
+) -> Option<Value> {
+    if let Some(data) = http_api.get_klines(symbol).await {
+        let v: Value = serde_json::from_str(&data).unwrap();
+        return Some(v);
+    } else {
+        return None;
+    }
+}
 
 
 // papi
@@ -469,6 +479,7 @@ pub async fn get_papi_account_sub(
         // let mut position: f64 = 0.0;
         let mut amts: f64 = 0.0;
         let mut prices: f64 = 0.0;
+        let mut new_symbol = "";
 
         // let mut short_position: f64 = 0.0;
         for p in positions {
@@ -481,9 +492,8 @@ pub async fn get_papi_account_sub(
                 println!("positions{:?}", obj);
                 
             let symbol = obj.get("symbol").unwrap().as_str().unwrap();
-            let symbols= &symbol[0..symbol.len()-4];
+            new_symbol= &symbol[0..symbol.len()-4];
             // println!("symbols: {},symbol: {}", symbols, symbol);
-            let sbol = format!("{}USDT", symbols);
             amts += position_amt;
             }
 
@@ -518,6 +528,7 @@ pub async fn get_papi_account_sub(
                 position: format!("{}", 2),
                 open_order_amt: format!("{}", open_order),
                 available_balance: format!("{}", total_available_balance),
+                symbol:format!("{}USDT", new_symbol)
             });
         } else {
             error!("Can't get {} openOrders.", name);

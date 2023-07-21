@@ -68,6 +68,7 @@ pub async fn server(ip: String, config_db: HashMap<String, String>) -> std::io::
             .service(web::resource("/get_papi_single_account").route(web::post().to(handlers::single_papi_account)))
             .service(web::resource("/get_papi_positions").route(web::post().to(handlers::papi_positions)))
             .service(web::resource("/get_papi_open_orders").route(web::post().to(handlers::papi_open_orders)))
+            .service(web::resource("/get_papi_klines").route(web::post().to(handlers::papi_klines)))
     })
     .bind((ip.as_str(), 8081))?
     .run();

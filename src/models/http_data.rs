@@ -178,6 +178,14 @@ pub struct Posr {
     pub token: String
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Klines {
+    pub symbol: String,
+    pub r#type: String,
+    pub token: String
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IncomesRe {
     pub r#type: String,
@@ -279,6 +287,7 @@ pub struct PapiSub {
     pub open_order_amt: String,
     pub position: String,
     pub available_balance: String,
+    pub symbol: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
