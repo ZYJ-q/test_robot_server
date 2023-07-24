@@ -449,6 +449,10 @@ pub async fn get_papi_account_sub(
     origin_balance: f64,
     alarm: &str,
 ) -> Option<PapiSub> {
+      if let Some (data) = http_api.account().await{
+        let value: Value = serde_json::from_str(&data).unwrap();
+        println!("账户信息{}", value );
+
         if let Some(data) = http_api.position_risk().await {
             let value: Value = serde_json::from_str(&data).unwrap();
             let assets = value.as_array().unwrap();
@@ -555,6 +559,11 @@ pub async fn get_papi_account_sub(
         return None;
         
     }
+}else {
+    error!("Can't get {} positions.", name);
+        return None;
+    
+}
 }
 
 
