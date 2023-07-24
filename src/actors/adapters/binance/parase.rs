@@ -452,7 +452,7 @@ pub async fn get_papi_account_sub(
       if let Some (data) = http_api.account().await{
         let value: Value = serde_json::from_str(&data).unwrap();
         println!("账户信息{}", value);
-        let total_available_balance = value.as_object().unwrap().get("availableBalance").unwrap().as_str().unwrap();
+        let total_available_balance = value.as_object().unwrap().get("totalAvailableBalance").unwrap().as_str().unwrap();
 
         if let Some(data) = http_api.position_risk().await {
             let value: Value = serde_json::from_str(&data).unwrap();
