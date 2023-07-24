@@ -58,21 +58,11 @@ pub async fn get_account_sub(
 
             if wallet_balance != 0.00 {
                 
-                if symbol == "BNB" && name == "trader02" {
+                if symbol == "BNB"{
                     continue;
                 }
-                if symbol != "USDT" || symbol != "USDP" || symbol != "USDC" {
-                    let asset = format!("{}USDT", symbol);
-                    if let Some(data) = http_api.get_klines(&asset).await {
-                        let v: Value = serde_json::from_str(&data).unwrap();
-                        let price_obj = v.as_object().unwrap();
-                        let price:f64 = price_obj.get("price").unwrap().as_str().unwrap().parse().unwrap();
-                        println!("标记价格{}",price );
-                        best_price = price;
-                        let new_price = wallet_balance * price;
-                        new_total_balance += new_price;
-                        new_total_equity += new_price;
-                    }
+                if symbol == "ETH" {
+                    continue;     
                 }
 
                 let cross_un_pnl: f64 = obj.get("crossUnPnl").unwrap().as_str().unwrap().parse().unwrap();
@@ -395,7 +385,7 @@ pub async fn get_income_data(
     let mut week_amount = 0.0;
     // println!("当前时间戳{}", dt);
 
-        if let Some(data) = http_api.get_income().await {
+        if let Some(data) = http_api.get_income("").await {
             let value: Value = serde_json::from_str(&data).unwrap();
             // println!("获取基金流水{:?}", value);
             if value["total"] != 0 {
@@ -459,14 +449,33 @@ pub async fn get_papi_account_sub(
     origin_balance: f64,
     alarm: &str,
 ) -> Option<PapiSub> {
-    if let Some(data) = http_api.account().await {
-        let value: Value = serde_json::from_str(&data).unwrap();
-        let obj = value.as_object().unwrap();
-        let equity = obj.get("accountEquity").unwrap().as_str().unwrap();
-        let total_available_balance = obj.get("totalAvailableBalance").unwrap().as_str().unwrap();
-
         if let Some(data) = http_api.position_risk().await {
             let value: Value = serde_json::from_str(&data).unwrap();
+            let assets = value.as_array().unwrap();
+            let mut equity = 0.0;
+            let mut total_available_balance = 0.0;
+
+        for p in assets {
+            let obj = p.as_object().unwrap();
+            let amt:f64 = obj.get("totalWalletBalance").unwrap().as_str().unwrap().parse().unwrap();
+            if amt == 0.0 {
+                continue;
+            } else {
+                let symbol = obj.get("asset").unwrap().as_str().unwrap();
+                if symbol == "BTC" {
+                    continue;
+                } else {
+                    let unrealied_um:f64 = obj.get("umUnrealizedPNL").unwrap().as_str().unwrap().parse().unwrap();
+                    let unrealied_cm:f64 = obj.get("cmUnrealizedPNL").unwrap().as_str().unwrap().parse().unwrap();
+                    let unrealied = unrealied_cm + unrealied_um;
+                    let total_equity = unrealied + amt;
+                    equity += total_equity;
+                    total_available_balance += amt;  
+                }
+            }
+
+            
+        }
 
 
 
@@ -545,13 +554,6 @@ pub async fn get_papi_account_sub(
         error!("Can't get {} positions.", name);
         return None;
         
-    }
-
-        
-    
-    } else {
-        error!("Can't get {} account.", name);
-        return None;
     }
 }
 
@@ -681,5 +683,111 @@ pub async fn get_papi_open_orders(
     }
 }
 
+
+// 获取papi资产明细
+pub async fn get_papi_history_accounts(
+    http_api: &Box<dyn HttpVenueApi>,
+    name: &str,
+    id: &u64,
+    origin_balance: f64,
+) -> Vec<Value> {
+    let mut history_assets: VecDeque<Value> = VecDeque::new();
+    if let Some(data) = http_api.position_risk().await {
+        let value: Value = serde_json::from_str(&data).unwrap();
+        // let mut history_positions: Vec<http_data::Position> = Vec::new();
+        
+        let assets = value.as_array().unwrap();
+        for p in assets {
+            let mut asset_obj: Map<String, Value> = Map::new();
+            let obj = p.as_object().unwrap();
+            let amt:f64= obj.get("totalWalletBalance").unwrap().as_str().unwrap().parse().unwrap();
+            if amt == 0.0 {
+                continue;
+            } else {
+                let symbol = obj.get("asset").unwrap().as_str().unwrap();
+                    let wallet_balance= obj.get("totalWalletBalance").unwrap().as_str().unwrap();
+            let unrealized_profit_um:f64 = obj.get("umUnrealizedPNL").unwrap().as_str().unwrap().parse().unwrap();
+            let unrealized_profit_cm: f64 = obj.get("cmUnrealizedPNL").unwrap().as_str().unwrap().parse().unwrap(); 
+            let unrealized_profit = unrealized_profit_cm + unrealized_profit_um;
+            let margin_balance = amt + unrealized_profit;
+            let available_balance = obj.get("crossMarginFree").unwrap().as_str().unwrap();
+
+            asset_obj.insert(String::from("symbol"), Value::from(symbol));
+            asset_obj.insert(String::from("wallet_balance"), Value::from(wallet_balance));
+            asset_obj.insert(String::from("unrealized_profit"), Value::from(unrealized_profit));
+            asset_obj.insert(String::from("margin_balance"), Value::from(margin_balance));
+            asset_obj.insert(String::from("availableBalance"), Value::from(available_balance));
+            // 新加的
+            asset_obj.insert(String::from("id"), Value::from(id.to_string()));
+
+            history_assets.push_back(Value::from(asset_obj));
+            }
+        }
+            return history_assets.into();
+    } else {
+        error!("Can't get {} account.", name);
+        return history_assets.into();
+    }
+}
+
+// 获取papi划转明细
+pub async fn get_papi_income_data(
+    http_api: &Box<dyn HttpVenueApi>,
+    name: &str,
+    id: &u64,
+) -> Vec<Value>{
+    
+    let mut trade_incomes: VecDeque<Value> = VecDeque::new();
+
+    // println!("传过来的数据,  name:{:?}, id:{:?}", name, id);
+    // println!("当前时间戳{}", dt);
+
+        if let Some(data) = http_api.get_income("TRANSFER").await {
+            let value: Value = serde_json::from_str(&data).unwrap();
+            println!("获取基金流水{:?}", value);
+            let incomes = value.as_array().unwrap();
+            if incomes.len() == 0 {
+
+            }
+
+
+            
+        //     if value["total"] != 0 {
+        //         let income = value["rows"].as_array().unwrap();
+        //     // let last_day = dt - 1000*60*4;
+        //     for i in income {
+        //         let mut income_obj: Map<String, Value> = Map::new();
+        //         let obj = i.as_object().unwrap(); // positionAmt positionSide
+                
+        //         let status = obj.get("status").unwrap().as_str().unwrap();
+        //         if status == "CONFIRMED" {
+        //             let time = obj.get("timestamp").unwrap().as_i64().unwrap();
+        //             let amount:f64 = obj.get("amount").unwrap().as_str().unwrap().parse().unwrap();
+        //             let asset = obj.get("asset").unwrap().as_str().unwrap();
+        //             week_amount += amount;
+        //             if time >= last_day {
+        //                 day_amount += amount;
+        //             }
+        //             income_obj.insert(String::from("day_amount"), Value::from(day_amount.to_string()));
+        //             income_obj.insert(String::from("week_amount"), Value::from(week_amount.to_string()));
+        //             income_obj.insert(String::from("name"), Value::from(name));
+        //             income_obj.insert(String::from("id"), Value::from(id.to_string()));
+        //             income_obj.insert(String::from("time"), Value::from(time));
+        //             income_obj.insert(String::from("amount"), Value::from(amount));
+        //             income_obj.insert(String::from("asset"), Value::from(asset));
+        //             trade_incomes.push_back(Value::from(income_obj));
+        //         } else {
+        //             continue;
+        //         }  
+        //     }
+                
+        // }
+            // println!("处理之后的账户资金账户数据{:?}", trade_incomes);
+            return Vec::from(trade_incomes.clone());
+        } else {
+            error!("Can't get {} income.", name);
+            return Vec::from(trade_incomes.clone());
+        }
+}
 
 
