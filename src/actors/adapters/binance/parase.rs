@@ -58,7 +58,7 @@ pub async fn get_account_sub(
 
             if wallet_balance != 0.00 {
                 
-                if symbol == "BNB" {
+                if symbol == "BNB" && name == "trader02" {
                     continue;
                 }
                 if symbol != "USDT" || symbol != "USDP" || symbol != "USDC" {
