@@ -451,13 +451,12 @@ pub async fn get_papi_account_sub(
 ) -> Option<PapiSub> {
       if let Some (data) = http_api.account().await{
         let value: Value = serde_json::from_str(&data).unwrap();
-        println!("账户信息{}", value );
+        let total_available_balance = value.as_object().unwrap().get("availableBalance").unwrap().as_str().unwrap();
 
         if let Some(data) = http_api.position_risk().await {
             let value: Value = serde_json::from_str(&data).unwrap();
             let assets = value.as_array().unwrap();
             let mut equity = 0.0;
-            let mut total_available_balance = 0.0;
 
         for p in assets {
             let obj = p.as_object().unwrap();
@@ -474,7 +473,6 @@ pub async fn get_papi_account_sub(
                     let unrealied = unrealied_cm + unrealied_um;
                     let total_equity = unrealied + amt;
                     equity += total_equity;
-                    total_available_balance += amt;  
                 }
             }
 
